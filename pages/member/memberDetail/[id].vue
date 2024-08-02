@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { Member } from '@/interface';
-
 const PAGE_TITLE = "会員詳細情報";
 useHead({
   title: PAGE_TITLE
@@ -11,23 +9,23 @@ definePageMeta({
 });
 
 const route = useRoute();
-const memberList = useState<Map<number, Member>>("memberList");
-const member = computed(
-  (): Member => {
-    const id = Number(route.params.id);
-    return memberList.value.get(id) as Member;
+const asyncData = useLazyFetch(
+  "/api/getOneMemberInfo",
+  {
+    query: {id: route.params.id}
   }
-)
-
+);
+const member = asyncData.data;
+const pending = asyncData.pending;
 const localNote = computed(
   (): string => {
     let localNote = "--";
-    if(member.value.note != undefined) {
+    if(member.value != null && member.value.note != undefined) {
       localNote = member.value.note;
     }
     return localNote;
   }
-)
+);
 </script>
 
 <template>
@@ -40,13 +38,14 @@ const localNote = computed(
   </nav>
   <section>
     <h2>{{ PAGE_TITLE }}</h2>
-    <dl>
+    <p v-if="pending">データ取得中・・・</p>
+    <dl v-else>
       <dt>ID</dt>
-      <dd>{{ member.id }}</dd>
+      <dd>{{ member?.id }}</dd>
       <dt>メアド</dt>
-      <dd>{{ member.email }}</dd>
+      <dd>{{ member?.email }}</dd>
       <dt>保有ポイント</dt>
-      <dd>{{ member.points }}</dd>
+      <dd>{{ member?.points }}</dd>
       <dt>備考</dt>
       <dd>{{ localNote }}</dd>
     </dl>

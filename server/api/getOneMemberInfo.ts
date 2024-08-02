@@ -2,10 +2,12 @@ import type { Member } from '@/interface';
 import { createMemberList } from '@/membersDB';
 
 export default defineEventHandler(
-  (event): Member[] => {
+  (event): Member => {
+
+    const query = getQuery(event);
     const memberList = createMemberList();
-    const memberListValues = memberList.values();
-    const memberListArray = Array.from(memberListValues);
-    return memberListArray;
+    const idNo = Number(query.id);
+    const member = memberList.get(idNo) as Member;
+    return member;
   }
 );
