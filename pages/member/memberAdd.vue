@@ -11,8 +11,6 @@ definePageMeta({
 });
 
 const router = useRouter();
-const memberList = useState<Map<number, Member>>("memberList");
-
 const member: Member = reactive(
   {
     id: 0,
@@ -23,10 +21,20 @@ const member: Member = reactive(
   }
 );
 
-const onAdd = (): void => {
-  memberList.value.set(member.id, member);
-  router.push({name: "member-memberList"});
-}
+const pending = ref(false);
+const onAdd = async (): Promise<void> => {
+  pending.value = true;
+  const asyncData = await useFetch(
+    "/api/addMemberInfo",
+    {
+      method: "POST",
+      body: member
+    }
+  );
+  if(asyncData.data.value != null && asyncData.data.value.result === 1) {
+    router.push({name: "member-memberList"});
+  }
+};
 </script>
 
 <template>
@@ -39,7 +47,9 @@ const onAdd = (): void => {
   </nav>
   <section>
     <h2>{{ PAGE_TITLE }}</h2>
-    <p>情報を入力してください</p>
+    <p v-if="pending">データ取得中・・・</p>
+    <template v-else>
+      <p>情報を入力してください</p>
     <form @submit.prevent="onAdd">
       <dl>
         <dt>
@@ -75,5 +85,6 @@ const onAdd = (): void => {
       </dl>
       <button type="submit">登録</button>
     </form>
+    </template>
   </section>
 </template>
